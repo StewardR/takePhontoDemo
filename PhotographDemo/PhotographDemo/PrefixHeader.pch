@@ -1,0 +1,22 @@
+//
+//  PrefixHeader.pch
+//  PhotographDemo
+//
+//  Created by Roy on 2019/6/4.
+//  Copyright © 2019 stewardR. All rights reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+#import <Masonry.h>
+#import <AliyunOSSiOS/OSSService.h>
+#import "CustomConfig.h"
+
+#pragma mark -- Masonry
+#define equalTo(...)                     mas_equalTo(__VA_ARGS__)
+#define greaterThanOrEqualTo(...)        mas_greaterThanOrEqualTo(__VA_ARGS__)
+#define lessThanOrEqualTo(...)           mas_lessThanOrEqualTo(__VA_ARGS__)
+#define offset(...)                      mas_offset(__VA_ARGS__)
+
+#endif /* PrefixHeader_pch */
