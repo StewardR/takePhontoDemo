@@ -10,6 +10,12 @@
 
 @class PicMesModel;
 
+/**
+ 上传完成后的回调
+
+ @param uploadAll 是否完全上传成功
+ @param waitUploadPicMuarr 上传失败之后，等待再次上传的数组
+ */
 typedef void(^FinishUploadBlock)(BOOL uploadAll, NSMutableArray *waitUploadPicMuarr);
 
 @interface UploadOSSManager : NSObject

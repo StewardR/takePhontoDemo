@@ -122,11 +122,6 @@
     
 }
 
-#pragma mark -- get RandomNumber
-- (int)getRandomNumber{
-    int x = arc4random() % 100;
-    return x;
-}
 
 
 @end

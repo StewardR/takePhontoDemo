@@ -223,8 +223,6 @@ static int picNum = 4;
             }];
             
             [weakSelf.picDisplayView reloadPic];
-            // 开启线程上传照片
-//            [weakSelf uploadPicToOSS:picmesmodel];
             [weakSelf.uploadmanager uploadPicToOssWithPicturePathMuarr:weakSelf.uploadPicPathMuarr
                                                         picturePathPre:UPLOAD_OBJECT_KEY
                                                        deletedPicMuarr:weakSelf.deletedPicPathMuarr
@@ -442,85 +440,8 @@ static int picNum = 4;
     }];
 }
 
-#pragma mark -- 上传照片
-- (void)uploadPhoto:(NSData *)picData{
-    __weak typeof(self) weakSelf = self;
-    dispatch_group_async(self.uploadPhotoGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        
-            NSString * picPath = @"they are  sb";
-            [weakSelf.uploadPicPathMuarr addObject:picPath];
-    });
-    
-}
 
-- (void)finishUploadAction{
-    __weak typeof(self) weakSelf = self;
-    dispatch_group_notify(self.uploadPhotoGroup, dispatch_get_main_queue(), ^{
-        
-        NSLog(@"主线程：%ld",(long)weakSelf.uploadPicPathMuarr.count);
-        if (weakSelf.uploadPicPathMuarr.count == picNum) {
-            if (weakSelf.afterLoadCanGo) {   // 避免在网速不好的时候，上传完毕，此方法执行多次，待优化🚥🚦
-            [weakSelf performSelector:@selector(afterUploadFinish) withObject:nil afterDelay:0.5];
-                weakSelf.afterLoadCanGo = NO;
-            }else{
-                return;
-            }
-        }
-    });
-    
-}
 
-- (void)afterUploadFinish{// 上传oss完毕
-     NSLog(@"I will leave %@",self.uploadPicPathMuarr);
-}
-
-/**
- 上传照片到oss
-
- @param picmodel 图片信息
- */
-- (void)uploadPicToOSS:(PicMesModel *)picmodel{
-    
-    __weak typeof(self) weakSelf = self;
-    dispatch_group_enter(self.uploadPhotoGroup);
-    dispatch_group_async(self.uploadPhotoGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        OSSPutObjectRequest * put = [OSSPutObjectRequest new];
-        put.bucketName = BUCKET_NAME;
-        put.objectKey = picmodel.ossPath;
-        put.uploadingData = UIImageJPEGRepresentation(picmodel.currentImage, 0.1); // 直接上传NSData
-        put.uploadProgress = ^(int64_t bytesSent, int64_t totalByteSent, int64_t totalBytesExpectedToSend) {
-            NSLog(@"当前线程：%@",[NSThread currentThread]);
-            NSLog(@"%lld, %lld, %lld", bytesSent, totalByteSent, totalBytesExpectedToSend);
-            if (picmodel.deleted) { // 当前
-                NSLog(@"退出");
-                if (![weakSelf.deletedPicPathMuarr containsObject:picmodel.ossPath]) {
-                    [weakSelf.deletedPicPathMuarr addObject:picmodel.ossPath];
-                }
-                
-            }
-        };
-        
-        OSSTask * putTask = [self.ossCilent putObject:put];
-        [putTask continueWithBlock:^id(OSSTask *task) {
-            if (!task.error) {
-                if (![weakSelf.deletedPicPathMuarr containsObject:picmodel.ossPath]) {
-                    [weakSelf.uploadPicPathMuarr addObject:put.objectKey];
-                }
-                NSLog(@"%@,%@,%ld",@"upload object success!",put.objectKey,(long)weakSelf.uploadPicPathMuarr.count);
-                dispatch_group_leave(weakSelf.uploadPhotoGroup);
-            } else {
-                NSLog(@"upload object failed, error: %@" , task.error);
-                dispatch_group_leave(weakSelf.uploadPhotoGroup);
-            }
-            dispatch_group_wait(weakSelf.uploadPhotoGroup,DISPATCH_TIME_FOREVER);
-            [weakSelf finishUploadAction];
-            return nil;
-        }];
-        
-    });
-    
-    
-}
 
 #pragma mark -- 终止上传操作
 

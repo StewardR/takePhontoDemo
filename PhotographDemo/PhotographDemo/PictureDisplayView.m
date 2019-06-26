@@ -9,8 +9,10 @@
 #import "PictureDisplayView.h"
 #import "PictureCustomCell.h"
 #import "PicMesModel.h"
+#import "DamagePicCell.h" // 拍车损
 
 static NSString * const customCellID = @"picturecellid";
+static NSString * const customcellWithoutPlaceholderID = @"customcellWithoutPlaceholderID";
 
 static CGFloat miniItemSpace = 20.f;
 
@@ -37,6 +39,7 @@ static CGFloat miniItemSpace = 20.f;
         _mainPicCollectionView.dataSource = self;
         _mainPicCollectionView.backgroundColor = [UIColor clearColor];
         [_mainPicCollectionView registerNib:[UINib nibWithNibName:NSStringFromClass([PictureCustomCell class]) bundle:nil] forCellWithReuseIdentifier:customCellID];
+        [_mainPicCollectionView registerNib:[UINib nibWithNibName:NSStringFromClass([DamagePicCell class]) bundle:nil] forCellWithReuseIdentifier:customcellWithoutPlaceholderID];
     }
     return _mainPicCollectionView;
 }
@@ -67,20 +70,39 @@ static CGFloat miniItemSpace = 20.f;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
-    PictureCustomCell * picCell = [collectionView dequeueReusableCellWithReuseIdentifier:customCellID forIndexPath:indexPath];
-    if (!picCell) {
-        picCell = [[[NSBundle mainBundle]loadNibNamed:NSStringFromClass([PictureCustomCell class])
-                                                owner:self
-                                              options:nil]lastObject];
+    
+    if (self.takephotoType == TakePhotoType_Damage) {
+        DamagePicCell * picCell = [collectionView dequeueReusableCellWithReuseIdentifier:customcellWithoutPlaceholderID forIndexPath:indexPath];
+        if (!picCell) {
+            picCell = [[[NSBundle mainBundle]loadNibNamed:NSStringFromClass([DamagePicCell class])
+                                                    owner:self
+                                                  options:nil]lastObject];
+        }
+        PicMesModel * cellmodel = [self.picMesArr objectAtIndex:indexPath.row];
+        NSLog(@"cell渲染中的图片：%@",cellmodel.currentImage);
+        [picCell updateCellMesWithPlaceHolderImage:cellmodel.placeholderImage
+                                         fillImage:cellmodel.currentImage
+                                    selectedStatus:cellmodel.selectedStatus
+                                       canSelected:cellmodel.canSelected
+                                       pictureName:cellmodel.picName];
+        return picCell ;
+    }else{
+        PictureCustomCell * picCell = [collectionView dequeueReusableCellWithReuseIdentifier:customCellID forIndexPath:indexPath];
+        if (!picCell) {
+            picCell = [[[NSBundle mainBundle]loadNibNamed:NSStringFromClass([PictureCustomCell class])
+                                                    owner:self
+                                                  options:nil]lastObject];
+        }
+        PicMesModel * cellmodel = [self.picMesArr objectAtIndex:indexPath.row];
+        NSLog(@"cell渲染中的图片：%@",cellmodel.currentImage);
+        [picCell updateCellMesWithPlaceHolderImage:cellmodel.placeholderImage
+                                         fillImage:cellmodel.currentImage
+                                    selectedStatus:cellmodel.selectedStatus
+                                       canSelected:cellmodel.canSelected
+                                       pictureName:cellmodel.picName];
+        return picCell ;
     }
-    PicMesModel * cellmodel = [self.picMesArr objectAtIndex:indexPath.row];
-    NSLog(@"cell渲染中的图片：%@",cellmodel.currentImage);
-    [picCell updateCellMesWithPlaceHolderImage:cellmodel.placeholderImage
-                                     fillImage:cellmodel.currentImage
-                                selectedStatus:cellmodel.selectedStatus
-                                   canSelected:cellmodel.canSelected
-                                   pictureName:cellmodel.picName];
-    return picCell ;
+    
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath{
